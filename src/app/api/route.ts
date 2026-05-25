@@ -8,7 +8,7 @@ export async function GET() {
 import json
 import openpyxl
 
-wb = openpyxl.load_workbook('/home/z/my-project/upload/02-16.xlsx', data_only=True)
+wb = openpyxl.load_workbook('/home/z/my-project/upload/02-16_правильный.xlsx', data_only=True)
 
 # === Sheet: 16_02_3ур ===
 ws1 = wb['16_02_3ур']
@@ -25,8 +25,8 @@ r16_rto = ws1.cell(row=19, column=11).value or 0
 subcategories = []
 for row_num in range(14, 19):
     name = ws1.cell(row=row_num, column=3).value
-    r02_c = ws1.cell(row=row_num, column=4).value
-    r16_c = ws1.cell(row=row_num, column=5).value
+    r02_c = ws1.cell(row=row_num, column=4).value or 0
+    r16_c = ws1.cell(row=row_num, column=5).value or 0
     r02_p = ws1.cell(row=row_num, column=6).value or 0
     r16_p = ws1.cell(row=row_num, column=7).value or 0
     r02_s = ws1.cell(row=row_num, column=8).value or 0
@@ -35,14 +35,10 @@ for row_num in range(14, 19):
     r16_r = ws1.cell(row=row_num, column=11).value or 0
     subcategories.append({
         'name': name,
-        'r02_checks': r02_c,
-        'r16_checks': r16_c,
-        'r02_penetration': r02_p,
-        'r16_penetration': r16_p,
-        'r02_sales': r02_s,
-        'r16_sales': r16_s,
-        'r02_rto': r02_r,
-        'r16_rto': r16_r,
+        'r02_checks': r02_c, 'r16_checks': r16_c,
+        'r02_penetration': r02_p, 'r16_penetration': r16_p,
+        'r02_sales': r02_s, 'r16_sales': r16_s,
+        'r02_rto': r02_r, 'r16_rto': r16_r,
     })
 
 # === Sheet: общий_3ур ===
@@ -77,83 +73,123 @@ for row_num in range(14, 19):
     r = ws3.cell(row=row_num, column=7).value or 0
     nbch_subcategories.append({'name': name, 'checks': c, 'penetration': p, 'sales': s, 'rto': r})
 
-# === Sheet: 16_магазины ===
-ws5 = wb['16_магазины']
-region16_stores = []
-for row_num in range(14, ws5.max_row):
-    name = ws5.cell(row=row_num, column=1).value
-    if name is None or 'Общий' in str(name):
-        break
-    checks = ws5.cell(row=row_num, column=2).value or 0
-    pen = ws5.cell(row=row_num, column=3).value or 0
-    sales = ws5.cell(row=row_num, column=4).value or 0
-    rto = ws5.cell(row=row_num, column=5).value or 0
-    total_receipts = checks / pen if pen > 0 else 0
-    region16_stores.append({
-        'name': name, 'checks': checks, 'penetration': pen,
-        'sales': sales, 'rto': rto, 'total_receipts': total_receipts,
-    })
+# ======================================================
+# BOTH store sheets now have Уровень 3 (subcategories)
+# Both use SAME methodology: dedup on CHECK COUNTS
+# ======================================================
 
-# === Sheet: 02_магазины ===
-# CORRECT APPROACH: Do NOT sum penetration percentages!
-# Instead: calculate total store receipts from subcategory data,
-# then estimate ФРОВ total receipts using dedup coefficient on CHECK COUNTS,
-# then calculate estimated penetration.
-ws4 = wb['02_магазины']
+# --- Region 02: 4 subcats (col 2-5=checks, 6-9=pen, 10-13=sales, 14-17=rto) ---
+ws02 = wb['02_магазины']
 region02_stores = []
+r02_subcat_checks_sum = 0
 
-# First pass: collect raw data and calculate dedup coefficient
-store_raw = []
-total_subcat_checks_sum = 0
-for row_num in range(14, ws4.max_row):
-    name = ws4.cell(row=row_num, column=1).value
+for row_num in range(14, ws02.max_row + 1):
+    name = ws02.cell(row=row_num, column=1).value
     if name is None or 'Общий' in str(name):
         break
-    cg = ws4.cell(row=row_num, column=2).value or 0
-    cz = ws4.cell(row=row_num, column=3).value or 0
-    co = ws4.cell(row=row_num, column=4).value or 0
-    cf = ws4.cell(row=row_num, column=5).value or 0
-    pg = ws4.cell(row=row_num, column=6).value or 0
-    pz = ws4.cell(row=row_num, column=7).value or 0
-    po = ws4.cell(row=row_num, column=8).value or 0
-    pf = ws4.cell(row=row_num, column=9).value or 0
-    sg = ws4.cell(row=row_num, column=10).value or 0
-    sz = ws4.cell(row=row_num, column=11).value or 0
-    so = ws4.cell(row=row_num, column=12).value or 0
-    sf = ws4.cell(row=row_num, column=13).value or 0
-    rg = ws4.cell(row=row_num, column=14).value or 0
-    rz = ws4.cell(row=row_num, column=15).value or 0
-    ro = ws4.cell(row=row_num, column=16).value or 0
-    rf = ws4.cell(row=row_num, column=17).value or 0
+    cg = ws02.cell(row=row_num, column=2).value or 0
+    cz = ws02.cell(row=row_num, column=3).value or 0
+    co = ws02.cell(row=row_num, column=4).value or 0
+    cf = ws02.cell(row=row_num, column=5).value or 0
+    pg = ws02.cell(row=row_num, column=6).value or 0
+    pz = ws02.cell(row=row_num, column=7).value or 0
+    po = ws02.cell(row=row_num, column=8).value or 0
+    pf = ws02.cell(row=row_num, column=9).value or 0
+    sg = ws02.cell(row=row_num, column=10).value or 0
+    sz = ws02.cell(row=row_num, column=11).value or 0
+    so = ws02.cell(row=row_num, column=12).value or 0
+    sf = ws02.cell(row=row_num, column=13).value or 0
+    rg = ws02.cell(row=row_num, column=14).value or 0
+    rz = ws02.cell(row=row_num, column=15).value or 0
+    ro = ws02.cell(row=row_num, column=16).value or 0
+    rf = ws02.cell(row=row_num, column=17).value or 0
 
-    subcat_checks = cg + cz + co + cf
-    total_subcat_checks_sum += subcat_checks
+    checks = [cg, cz, co, cf]
+    pens = [pg, pz, po, pf]
+    sales = [sg, sz, so, sf]
+    rtos = [rg, rz, ro, rf]
 
-    # Calculate total store receipts from the largest subcategory (ОВОЩИ) for best precision
-    total_receipts = co / po if po > 0 else 0
+    subcat_sum = sum(checks)
+    r02_subcat_checks_sum += subcat_sum
+    total_receipts = co / po if po and po > 0 else 0
 
-    store_raw.append({
+    region02_stores.append({
         'name': name,
-        'checks_gribi': cg, 'checks_zelen': cz, 'checks_ovoshi': co, 'checks_frukty': cf,
-        'pen_gribi': pg, 'pen_zelen': pz, 'pen_ovoshi': po, 'pen_frukty': pf,
-        'sales_gribi': sg, 'sales_zelen': sz, 'sales_ovoshi': so, 'sales_frukty': sf,
-        'rto_gribi': rg, 'rto_zelen': rz, 'rto_ovoshi': ro, 'rto_frukty': rf,
-        'subcat_checks_sum': subcat_checks,
+        'subcat_names': ['ГРИБЫ', 'ЗЕЛЕНЬ', 'ОВОЩИ', 'ФРУКТЫ'],
+        'subcat_checks': checks,
+        'subcat_penetrations': pens,
+        'subcat_sales': sales,
+        'subcat_rto': rtos,
+        'subcat_checks_sum': subcat_sum,
         'total_receipts': total_receipts,
-        'total_sales': sg + sz + so + sf,
-        'total_rto': rg + rz + ro + rf,
+        'total_sales': sum(sales),
+        'total_rto': sum(rtos),
     })
 
-# Dedup coefficient: ФРОВ total checks / sum of subcategory checks (at region level)
-dedup_factor = r02_checks / total_subcat_checks_sum if total_subcat_checks_sum > 0 else 1
+r02_dedup = r02_checks / r02_subcat_checks_sum if r02_subcat_checks_sum > 0 else 1
 
-# Second pass: estimate ФРОВ total checks and penetration per store
-for s in store_raw:
-    estimated_frov_checks = s['subcat_checks_sum'] * dedup_factor
-    estimated_frov_penetration = estimated_frov_checks / s['total_receipts'] if s['total_receipts'] > 0 else 0
-    s['estimated_frov_checks'] = estimated_frov_checks
-    s['estimated_frov_penetration'] = estimated_frov_penetration
-    region02_stores.append(s)
+for s in region02_stores:
+    s['estimated_frov_checks'] = s['subcat_checks_sum'] * r02_dedup
+    s['estimated_frov_penetration'] = s['estimated_frov_checks'] / s['total_receipts'] if s['total_receipts'] > 0 else 0
+
+# --- Region 16: 5 subcats (col 2-6=checks, 7-11=pen, 12-16=sales, 17-21=rto) ---
+ws16 = wb['16_магазины']
+region16_stores = []
+r16_subcat_checks_sum = 0
+
+for row_num in range(14, ws16.max_row + 1):
+    name = ws16.cell(row=row_num, column=1).value
+    if name is None or 'Общий' in str(name):
+        break
+    cb = ws16.cell(row=row_num, column=2).value or 0
+    cg = ws16.cell(row=row_num, column=3).value or 0
+    cz = ws16.cell(row=row_num, column=4).value or 0
+    co = ws16.cell(row=row_num, column=5).value or 0
+    cf = ws16.cell(row=row_num, column=6).value or 0
+    pb = ws16.cell(row=row_num, column=7).value or 0
+    pg = ws16.cell(row=row_num, column=8).value or 0
+    pz = ws16.cell(row=row_num, column=9).value or 0
+    po = ws16.cell(row=row_num, column=10).value or 0
+    pf = ws16.cell(row=row_num, column=11).value or 0
+    sb = ws16.cell(row=row_num, column=12).value or 0
+    sg = ws16.cell(row=row_num, column=13).value or 0
+    sz = ws16.cell(row=row_num, column=14).value or 0
+    so = ws16.cell(row=row_num, column=15).value or 0
+    sf = ws16.cell(row=row_num, column=16).value or 0
+    rb = ws16.cell(row=row_num, column=17).value or 0
+    rg = ws16.cell(row=row_num, column=18).value or 0
+    rz = ws16.cell(row=row_num, column=19).value or 0
+    ro = ws16.cell(row=row_num, column=20).value or 0
+    rf = ws16.cell(row=row_num, column=21).value or 0
+
+    checks = [cb, cg, cz, co, cf]
+    pens = [pb, pg, pz, po, pf]
+    sales = [sb, sg, sz, so, sf]
+    rtos = [rb, rg, rz, ro, rf]
+
+    subcat_sum = sum(checks)
+    r16_subcat_checks_sum += subcat_sum
+    # ОВОЩИ is at index 3 in the 5-subcat array
+    total_receipts = co / po if po and po > 0 else 0
+
+    region16_stores.append({
+        'name': name,
+        'subcat_names': ['БАХЧЕВЫЕ КУЛЬТУРЫ', 'ГРИБЫ', 'ЗЕЛЕНЬ', 'ОВОЩИ', 'ФРУКТЫ'],
+        'subcat_checks': checks,
+        'subcat_penetrations': pens,
+        'subcat_sales': sales,
+        'subcat_rto': rtos,
+        'subcat_checks_sum': subcat_sum,
+        'total_receipts': total_receipts,
+        'total_sales': sum(sales),
+        'total_rto': sum(rtos),
+    })
+
+r16_dedup = r16_checks / r16_subcat_checks_sum if r16_subcat_checks_sum > 0 else 1
+
+for s in region16_stores:
+    s['estimated_frov_checks'] = s['subcat_checks_sum'] * r16_dedup
+    s['estimated_frov_penetration'] = s['estimated_frov_checks'] / s['total_receipts'] if s['total_receipts'] > 0 else 0
 
 data = {
     'step1': {
@@ -166,10 +202,10 @@ data = {
         'nbch_subcategories': nbch_subcategories,
     },
     'step2': {
-        'region16': sorted(region16_stores, key=lambda x: x['penetration'], reverse=True),
+        'region16': sorted(region16_stores, key=lambda x: x['estimated_frov_penetration'], reverse=True),
         'region02': sorted(region02_stores, key=lambda x: x['estimated_frov_penetration'], reverse=True),
-        'r02_dedup_factor': dedup_factor,
-        'r02_regional_penetration': r02_penetration,
+        'r02_dedup_factor': r02_dedup,
+        'r16_dedup_factor': r16_dedup,
     }
 }
 
