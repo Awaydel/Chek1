@@ -12,8 +12,6 @@ wb = openpyxl.load_workbook('/home/z/my-project/upload/02-16.xlsx', data_only=Tr
 
 # === Sheet: 16_02_3ур ===
 ws1 = wb['16_02_3ур']
-# Region 02 (Башкортостан) and Region 16 (Татарстан)
-# Row 19 = Общий итог
 r02_checks = ws1.cell(row=19, column=4).value or 0
 r02_penetration = ws1.cell(row=19, column=6).value or 0
 r02_sales = ws1.cell(row=19, column=8).value or 0
@@ -24,7 +22,6 @@ r16_penetration = ws1.cell(row=19, column=7).value or 0
 r16_sales = ws1.cell(row=19, column=9).value or 0
 r16_rto = ws1.cell(row=19, column=11).value or 0
 
-# Level 3 subcategories (rows 14-18)
 subcategories = []
 for row_num in range(14, 19):
     name = ws1.cell(row=row_num, column=3).value
@@ -94,12 +91,12 @@ for row_num in range(14, ws5.max_row):
     region16_stores.append({'name': name, 'checks': checks, 'penetration': pen, 'sales': sales, 'rto': rto})
 
 # === Sheet: 02_магазины ===
+# IMPORTANT: This sheet has ONLY Level 3 (subcategory) breakdown.
+# NO direct ФРОВ overall penetration is available per store.
+# We store raw subcategory data and compute sum_of_penetrations for ranking.
+# sum_of_penetrations is an UPPER BOUND (overestimates due to check overlap).
 ws4 = wb['02_магазины']
 region02_stores = []
-
-# Regional totals for deduplication
-r02_sum_subcategory = 0
-r02_total_frov_checks = r02_checks
 
 for row_num in range(14, ws4.max_row):
     name = ws4.cell(row=row_num, column=1).value
@@ -121,33 +118,25 @@ for row_num in range(14, ws4.max_row):
     rz = ws4.cell(row=row_num, column=15).value or 0
     ro = ws4.cell(row=row_num, column=16).value or 0
     rf = ws4.cell(row=row_num, column=17).value or 0
-    
-    r02_sum_subcategory += cg + cz + co + cf
+
+    total_sales = sg + sz + so + sf
+    total_rto = rg + rz + ro + rf
+    sum_penetrations = pg + pz + po + pf
+
     region02_stores.append({
         'name': name,
         'checks_gribi': cg, 'checks_zelen': cz, 'checks_ovoshi': co, 'checks_frukty': cf,
         'pen_gribi': pg, 'pen_zelen': pz, 'pen_ovoshi': po, 'pen_frukty': pf,
+        'sum_penetrations': sum_penetrations,
         'sales_gribi': sg, 'sales_zelen': sz, 'sales_ovoshi': so, 'sales_frukty': sf,
         'rto_gribi': rg, 'rto_zelen': rz, 'rto_ovoshi': ro, 'rto_frukty': rf,
+        'total_sales': total_sales,
+        'total_rto': total_rto,
     })
 
-# Calculate deduplication factor
-dedup_factor = r02_total_frov_checks / r02_sum_subcategory if r02_sum_subcategory > 0 else 1
-
-# Estimate overall ФРОВ penetration per store
-for store in region02_stores:
-    sum_checks = store['checks_gribi'] + store['checks_zelen'] + store['checks_ovoshi'] + store['checks_frukty']
-    total_sales = store['sales_gribi'] + store['sales_zelen'] + store['sales_ovoshi'] + store['sales_frukty']
-    total_rto = store['rto_gribi'] + store['rto_zelen'] + store['rto_ovoshi'] + store['rto_frukty']
-    
-    total_traffic = store['checks_ovoshi'] / store['pen_ovoshi'] if store['pen_ovoshi'] > 0 else 0
-    est_frov_checks = sum_checks * dedup_factor
-    est_penetration = est_frov_checks / total_traffic if total_traffic > 0 else 0
-    
-    store['est_frov_checks'] = round(est_frov_checks)
-    store['est_penetration'] = est_penetration
-    store['total_sales'] = total_sales
-    store['total_rto'] = total_rto
+# Regional-level dedup info for reference only
+r02_sum_subcategory_checks = sum(s['checks_gribi'] + s['checks_zelen'] + s['checks_ovoshi'] + s['checks_frukty'] for s in region02_stores)
+dedup_factor = r02_checks / r02_sum_subcategory_checks if r02_sum_subcategory_checks > 0 else 1
 
 data = {
     'step1': {
@@ -161,7 +150,9 @@ data = {
     },
     'step2': {
         'region16': sorted(region16_stores, key=lambda x: x['penetration'], reverse=True),
-        'region02': sorted(region02_stores, key=lambda x: x['est_penetration'], reverse=True),
+        'region02': sorted(region02_stores, key=lambda x: x['sum_penetrations'], reverse=True),
+        'r02_dedup_factor': dedup_factor,
+        'r02_regional_penetration': r02_penetration,
     }
 }
 

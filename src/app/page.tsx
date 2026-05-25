@@ -36,9 +36,10 @@ interface Region02Store {
   name: string;
   checks_gribi: number; checks_zelen: number; checks_ovoshi: number; checks_frukty: number;
   pen_gribi: number; pen_zelen: number; pen_ovoshi: number; pen_frukty: number;
+  sum_penetrations: number;
   sales_gribi: number; sales_zelen: number; sales_ovoshi: number; sales_frukty: number;
   rto_gribi: number; rto_zelen: number; rto_ovoshi: number; rto_frukty: number;
-  est_frov_checks: number; est_penetration: number; total_sales: number; total_rto: number;
+  total_sales: number; total_rto: number;
 }
 
 interface AnalysisData {
@@ -46,6 +47,8 @@ interface AnalysisData {
   step2: {
     region16: Region16Store[]
     region02: Region02Store[]
+    r02_dedup_factor: number
+    r02_regional_penetration: number
   }
 }
 
@@ -83,6 +86,21 @@ function PenetrationBar({ value, maxVal = 0.5 }: { value: number; maxVal?: numbe
         />
       </div>
       <span className="text-xs font-medium tabular-nums">{fmtPct(value)}</span>
+    </div>
+  )
+}
+
+function SumPenBar({ value, maxVal = 0.55 }: { value: number; maxVal?: number }) {
+  const pct = Math.min((value / maxVal) * 100, 100)
+  return (
+    <div className="flex items-center gap-2">
+      <div className="w-24 h-2.5 bg-muted rounded-full overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-500 bg-amber-500"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <span className="text-xs font-medium tabular-nums text-amber-700 dark:text-amber-400">{fmtPct(value)}</span>
     </div>
   )
 }
@@ -132,6 +150,7 @@ export default function Home() {
   const r16pen = step1.region16.penetration
   const netpen = step1.network.penetration
   const nbchpen = step1.nbch.penetration
+  const dedupFactor = step2.r02_dedup_factor
 
   const r16Sorted = step2.region16
   const r02Sorted = step2.region02
@@ -227,7 +246,7 @@ export default function Home() {
                 <p className="text-xs text-muted-foreground mb-1">Регион 16 vs Регион 02</p>
                 <DiffBadge value={r16pen - r02pen} label="Δ" />
                 <p className="text-xs text-muted-foreground mt-2">
-                  Регион 16 опережает Регион 02 на {(r16pen - r02pen > 0 ? '' : '') + ((r16pen - r02pen) * 100).toFixed(2)} п.п.
+                  Регион 16 опережает Регион 02 на {((r16pen - r02pen) * 100).toFixed(2)} п.п.
                 </p>
               </CardContent>
             </Card>
@@ -305,18 +324,30 @@ export default function Home() {
 
           <Tabs defaultValue="region16" className="w-full">
             <TabsList className="mb-4">
-              <TabsTrigger value="region16">Регион 16 (Татарстан) — {r16Sorted.length} магазинов</TabsTrigger>
-              <TabsTrigger value="region02">Регион 02 (Башкортостан) — {r02Sorted.length} магазинов</TabsTrigger>
+              <TabsTrigger value="region16">Регион 16 (Татарстан) — {r16Sorted.length} маг.</TabsTrigger>
+              <TabsTrigger value="region02">Регион 02 (Башкортостан) — {r02Sorted.length} маг.</TabsTrigger>
             </TabsList>
 
             {/* ===== Region 16 ===== */}
             <TabsContent value="region16" className="space-y-6">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Структура данных Региона 16</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <span className="text-green-500 mt-0.5">✓</span>
+                    <span>В файле присутствует <strong>прямое значение пенетрации ФРОВ</strong> на уровне каждого магазина (Уровень 2). Рейтинг строится по этому показателю.</span>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Top 10 */}
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     <span className="inline-block w-3 h-3 rounded-full bg-green-500" />
-                    Топ-10 магазинов Региона 16 — наивысшая пенетрация
+                    Топ-10 магазинов Региона 16 — наивысшая пенетрация ФРОВ
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -326,7 +357,7 @@ export default function Home() {
                         <TableRow>
                           <TableHead className="w-[40px]">#</TableHead>
                           <TableHead>Магазин</TableHead>
-                          <TableHead>Пенетрация</TableHead>
+                          <TableHead>Пенетрация ФРОВ</TableHead>
                           <TableHead className="text-right">Чеки ФРОВ</TableHead>
                           <TableHead className="text-right">Продажи, шт</TableHead>
                           <TableHead className="text-right">РТО</TableHead>
@@ -354,7 +385,7 @@ export default function Home() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     <span className="inline-block w-3 h-3 rounded-full bg-red-500" />
-                    Топ-10 магазинов Региона 16 — наименьшая пенетрация
+                    Топ-10 магазинов Региона 16 — наименьшая пенетрация ФРОВ
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -364,7 +395,7 @@ export default function Home() {
                         <TableRow>
                           <TableHead className="w-[40px]">#</TableHead>
                           <TableHead>Магазин</TableHead>
-                          <TableHead>Пенетрация</TableHead>
+                          <TableHead>Пенетрация ФРОВ</TableHead>
                           <TableHead className="text-right">Чеки ФРОВ</TableHead>
                           <TableHead className="text-right">Продажи, шт</TableHead>
                           <TableHead className="text-right">РТО</TableHead>
@@ -399,7 +430,7 @@ export default function Home() {
                         <TableRow>
                           <TableHead className="w-[40px]">#</TableHead>
                           <TableHead>Магазин</TableHead>
-                          <TableHead>Пенетрация</TableHead>
+                          <TableHead>Пенетрация ФРОВ</TableHead>
                           <TableHead className="text-right">Чеки ФРОВ</TableHead>
                           <TableHead className="text-right">Продажи, шт</TableHead>
                           <TableHead className="text-right">РТО</TableHead>
@@ -425,17 +456,36 @@ export default function Home() {
 
             {/* ===== Region 02 ===== */}
             <TabsContent value="region02" className="space-y-6">
-              <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm text-amber-800 dark:text-amber-200">
-                ⚠ В исходном файле для Региона 02 отсутствует прямое значение пенетрации ФРОВ на уровне магазина (только по подкатегориям Ур.3).
-                Общая пенетрация рассчитана оценочно с применением коэффициента дедупликации пересечений чеков.
-              </div>
+              {/* Data limitation notice */}
+              <Card className="border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-950/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base text-amber-800 dark:text-amber-300 flex items-center gap-2">
+                    ⚠ Ограничение данных Региона 02
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-amber-900 dark:text-amber-200 space-y-2">
+                  <p>
+                    В исходном файле для Региона 02 <strong>отсутствует прямое значение пенетрации ФРОВ</strong> на уровне магазина.
+                    Данные представлены только в разрезе подкатегорий Уровня 3: <strong>ГРИБЫ, ЗЕЛЕНЬ, ОВОЩИ, ФРУКТЫ</strong>.
+                  </p>
+                  <p>
+                    Рейтинг магазинов построен по показателю <strong>Σ Пен. подкатегорий</strong> — сумме пенетраций четырёх подкатегорий.
+                    Это <strong>верхняя оценка</strong> пенетрации ФРОВ, так как один чек может содержать товары из нескольких подкатегорий.
+                  </p>
+                  <p className="text-xs opacity-80">
+                    Для справки: на региональном уровне Σ Пен. подкатегорий = {fmtPct(0.012379706071899456 + 0.033051637455828994 + 0.2565110967022268 + 0.21215779173556326)},
+                    а фактическая пенетрация ФРОВ = {fmtPct(r02pen)}.
+                    Коэффициент пересечения: {dedupFactor.toFixed(4)} (факт / Σ).
+                  </p>
+                </CardContent>
+              </Card>
 
-              {/* Top 10 */}
+              {/* Top stores */}
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     <span className="inline-block w-3 h-3 rounded-full bg-green-500" />
-                    Топ магазинов Региона 02 — наивысшая пенетрация
+                    Топ магазинов Региона 02 — наивысшая Σ пенетрации подкатегорий
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -445,10 +495,12 @@ export default function Home() {
                         <TableRow>
                           <TableHead className="w-[40px]">#</TableHead>
                           <TableHead>Магазин</TableHead>
-                          <TableHead>Пенетрация (оценка)</TableHead>
-                          <TableHead className="text-right">Чеки ФРОВ (оценка)</TableHead>
-                          <TableHead className="text-right">Продажи, шт</TableHead>
-                          <TableHead className="text-right">РТО</TableHead>
+                          <TableHead>Σ Пен. подкатегорий</TableHead>
+                          <TableHead className="text-right">Пен. ГРИБЫ</TableHead>
+                          <TableHead className="text-right">Пен. ЗЕЛЕНЬ</TableHead>
+                          <TableHead className="text-right">Пен. ОВОЩИ</TableHead>
+                          <TableHead className="text-right">Пен. ФРУКТЫ</TableHead>
+                          <TableHead className="text-right">РТО ФРОВ</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -456,9 +508,11 @@ export default function Home() {
                           <TableRow key={i}>
                             <TableCell className="font-medium text-muted-foreground">{i + 1}</TableCell>
                             <TableCell className="font-medium text-sm">{s.name}</TableCell>
-                            <TableCell><PenetrationBar value={s.est_penetration} /></TableCell>
-                            <TableCell className="text-right tabular-nums text-sm">{fmtNum(s.est_frov_checks)}</TableCell>
-                            <TableCell className="text-right tabular-nums text-sm">{fmtNum(s.total_sales, 0)}</TableCell>
+                            <TableCell><SumPenBar value={s.sum_penetrations} /></TableCell>
+                            <TableCell className="text-right tabular-nums text-xs">{fmtPct(s.pen_gribi)}</TableCell>
+                            <TableCell className="text-right tabular-nums text-xs">{fmtPct(s.pen_zelen)}</TableCell>
+                            <TableCell className="text-right tabular-nums text-xs">{fmtPct(s.pen_ovoshi)}</TableCell>
+                            <TableCell className="text-right tabular-nums text-xs">{fmtPct(s.pen_frukty)}</TableCell>
                             <TableCell className="text-right tabular-nums text-sm">{fmtRub(s.total_rto)}</TableCell>
                           </TableRow>
                         ))}
@@ -468,12 +522,12 @@ export default function Home() {
                 </CardContent>
               </Card>
 
-              {/* Bottom 10 */}
+              {/* Bottom stores */}
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     <span className="inline-block w-3 h-3 rounded-full bg-red-500" />
-                    Топ магазинов Региона 02 — наименьшая пенетрация
+                    Топ магазинов Региона 02 — наименьшая Σ пенетрации подкатегорий
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -483,10 +537,12 @@ export default function Home() {
                         <TableRow>
                           <TableHead className="w-[40px]">#</TableHead>
                           <TableHead>Магазин</TableHead>
-                          <TableHead>Пенетрация (оценка)</TableHead>
-                          <TableHead className="text-right">Чеки ФРОВ (оценка)</TableHead>
-                          <TableHead className="text-right">Продажи, шт</TableHead>
-                          <TableHead className="text-right">РТО</TableHead>
+                          <TableHead>Σ Пен. подкатегорий</TableHead>
+                          <TableHead className="text-right">Пен. ГРИБЫ</TableHead>
+                          <TableHead className="text-right">Пен. ЗЕЛЕНЬ</TableHead>
+                          <TableHead className="text-right">Пен. ОВОЩИ</TableHead>
+                          <TableHead className="text-right">Пен. ФРУКТЫ</TableHead>
+                          <TableHead className="text-right">РТО ФРОВ</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -494,9 +550,11 @@ export default function Home() {
                           <TableRow key={i}>
                             <TableCell className="font-medium text-muted-foreground">{i + 1}</TableCell>
                             <TableCell className="font-medium text-sm">{s.name}</TableCell>
-                            <TableCell><PenetrationBar value={s.est_penetration} /></TableCell>
-                            <TableCell className="text-right tabular-nums text-sm">{fmtNum(s.est_frov_checks)}</TableCell>
-                            <TableCell className="text-right tabular-nums text-sm">{fmtNum(s.total_sales, 0)}</TableCell>
+                            <TableCell><SumPenBar value={s.sum_penetrations} /></TableCell>
+                            <TableCell className="text-right tabular-nums text-xs">{fmtPct(s.pen_gribi)}</TableCell>
+                            <TableCell className="text-right tabular-nums text-xs">{fmtPct(s.pen_zelen)}</TableCell>
+                            <TableCell className="text-right tabular-nums text-xs">{fmtPct(s.pen_ovoshi)}</TableCell>
+                            <TableCell className="text-right tabular-nums text-xs">{fmtPct(s.pen_frukty)}</TableCell>
                             <TableCell className="text-right tabular-nums text-sm">{fmtRub(s.total_rto)}</TableCell>
                           </TableRow>
                         ))}
@@ -506,10 +564,10 @@ export default function Home() {
                 </CardContent>
               </Card>
 
-              {/* Full list with subcategory detail */}
+              {/* Full list with all subcategory detail */}
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Полный рейтинг магазинов Региона 02 с детализацией по подкатегориям</CardTitle>
+                  <CardTitle className="text-base">Полный рейтинг магазинов Региона 02 — данные из файла (Уровень 3)</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="max-h-[500px] overflow-y-auto">
@@ -518,12 +576,14 @@ export default function Home() {
                         <TableRow>
                           <TableHead className="w-[40px]">#</TableHead>
                           <TableHead>Магазин</TableHead>
-                          <TableHead>Пенетрация (оц.)</TableHead>
+                          <TableHead>Σ Пен.</TableHead>
                           <TableHead className="text-right">Пен. ГРИБЫ</TableHead>
                           <TableHead className="text-right">Пен. ЗЕЛЕНЬ</TableHead>
                           <TableHead className="text-right">Пен. ОВОЩИ</TableHead>
                           <TableHead className="text-right">Пен. ФРУКТЫ</TableHead>
-                          <TableHead className="text-right">РТО</TableHead>
+                          <TableHead className="text-right">Чеки ОВОЩИ</TableHead>
+                          <TableHead className="text-right">Прод., шт</TableHead>
+                          <TableHead className="text-right">РТО ФРОВ</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -531,11 +591,13 @@ export default function Home() {
                           <TableRow key={i} className={i % 2 === 0 ? 'bg-muted/20' : ''}>
                             <TableCell className="font-medium text-muted-foreground">{i + 1}</TableCell>
                             <TableCell className="font-medium text-sm">{s.name}</TableCell>
-                            <TableCell><PenetrationBar value={s.est_penetration} /></TableCell>
+                            <TableCell><SumPenBar value={s.sum_penetrations} /></TableCell>
                             <TableCell className="text-right tabular-nums text-xs">{fmtPct(s.pen_gribi)}</TableCell>
                             <TableCell className="text-right tabular-nums text-xs">{fmtPct(s.pen_zelen)}</TableCell>
                             <TableCell className="text-right tabular-nums text-xs">{fmtPct(s.pen_ovoshi)}</TableCell>
                             <TableCell className="text-right tabular-nums text-xs">{fmtPct(s.pen_frukty)}</TableCell>
+                            <TableCell className="text-right tabular-nums text-xs">{fmtNum(s.checks_ovoshi)}</TableCell>
+                            <TableCell className="text-right tabular-nums text-xs">{fmtNum(s.total_sales, 0)}</TableCell>
                             <TableCell className="text-right tabular-nums text-sm">{fmtRub(s.total_rto)}</TableCell>
                           </TableRow>
                         ))}
@@ -686,7 +748,7 @@ export default function Home() {
 
       <footer className="border-t bg-card mt-auto">
         <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 text-center text-xs text-muted-foreground">
-          Анализ пенетрации ФРОВ НБЧ · Данные: 02-16.xlsx · Все расчёты основаны на исходной выгрузке
+          Анализ пенетрации ФРОВ · Данные: 02-16.xlsx · Все расчёты строго по исходной выгрузке, без оценочных значений
         </div>
       </footer>
     </div>
