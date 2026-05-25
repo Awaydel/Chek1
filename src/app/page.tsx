@@ -456,26 +456,23 @@ export default function Home() {
 
             {/* ===== Region 02 ===== */}
             <TabsContent value="region02" className="space-y-6">
-              {/* Data limitation notice */}
-              <Card className="border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-950/20">
+              {/* Data structure note */}
+              <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base text-amber-800 dark:text-amber-300 flex items-center gap-2">
-                    ⚠ Ограничение данных Региона 02
+                  <CardTitle className="text-base flex items-center gap-2">
+                    Структура данных Региона 02
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="text-sm text-amber-900 dark:text-amber-200 space-y-2">
+                <CardContent className="text-sm text-muted-foreground space-y-2">
                   <p>
-                    В исходном файле для Региона 02 <strong>отсутствует прямое значение пенетрации ФРОВ</strong> на уровне магазина.
-                    Данные представлены только в разрезе подкатегорий Уровня 3: <strong>ГРИБЫ, ЗЕЛЕНЬ, ОВОЩИ, ФРУКТЫ</strong>.
+                    Лист «02_магазины» содержит данные <strong>Уровня 3</strong> — пенетрация по каждой подкатегории ФРОВ:
+                    <strong> ГРИБЫ, ЗЕЛЕНЬ, ОВОЩИ, ФРУКТЫ</strong>. Общая пенетрация ФРОВ по региону = <strong>{fmtPct(r02pen)}</strong> (из листа «16_02_3ур», Общий итог).
                   </p>
                   <p>
-                    Рейтинг магазинов построен по показателю <strong>Σ Пен. подкатегорий</strong> — сумме пенетраций четырёх подкатегорий.
-                    Это <strong>верхняя оценка</strong> пенетрации ФРОВ, так как один чек может содержать товары из нескольких подкатегорий.
-                  </p>
-                  <p className="text-xs opacity-80">
-                    Для справки: на региональном уровне Σ Пен. подкатегорий = {fmtPct(0.012379706071899456 + 0.033051637455828994 + 0.2565110967022268 + 0.21215779173556326)},
-                    а фактическая пенетрация ФРОВ = {fmtPct(r02pen)}.
-                    Коэффициент пересечения: {dedupFactor.toFixed(4)} (факт / Σ).
+                    Рейтинг магазинов построен по <strong>Σ Пен. подкатегорий</strong>.
+                    Σ Пен. ≠ Пен.ФРОВ, т.к. один чек может содержать товары из нескольких подкатегорий (пересечение).
+                    На региональном уровне: Σ = {fmtPct(0.012379706071899456 + 0.033051637455828994 + 0.2565110967022268 + 0.21215779173556326)},
+                    ФРОВ = {fmtPct(r02pen)}, коэфф. = {dedupFactor.toFixed(2)}.
                   </p>
                 </CardContent>
               </Card>
