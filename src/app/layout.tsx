@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+п»їimport type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
@@ -14,24 +14,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Дашборд by А.Б",
-  description: "Интерактивная панель мониторинга и анализа данных. Разработано с использованием TypeScript, Tailwind CSS и shadcn/ui.",
-  keywords: ["Дашборд", "Аналитика", "Next.js", "TypeScript", "Tailwind CSS", "shadcn/ui", "React"],
-  authors: [{ name: "Бурнаев А.В" }],
+  title: "Р”Р°С€Р±РѕСЂРґ by Рђ.Р‘",
+  description: "РРЅС‚РµСЂР°РєС‚РёРІРЅР°СЏ РїР°РЅРµР»СЊ РјРѕРЅРёС‚РѕСЂРёРЅРіР° Рё Р°РЅР°Р»РёР·Р° РґР°РЅРЅС‹С…. Р Р°Р·СЂР°Р±РѕС‚Р°РЅРѕ СЃ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёРµРј TypeScript, Tailwind CSS Рё shadcn/ui.",
+  keywords: ["Р”Р°С€Р±РѕСЂРґ", "РђРЅР°Р»РёС‚РёРєР°", "Next.js", "TypeScript", "Tailwind CSS", "shadcn/ui", "React"],
+  authors: [{ name: "Р‘СѓСЂРЅР°РµРІ Рђ.Р’" }],
   icons: {
     icon: "/favicon.ico",
   },
   openGraph: {
-    title: "Дашборд by А.Б",
-    description: "Интерактивная панель мониторинга и анализа данных",
+    title: "Р”Р°С€Р±РѕСЂРґ by Рђ.Р‘",
+    description: "РРЅС‚РµСЂР°РєС‚РёРІРЅР°СЏ РїР°РЅРµР»СЊ РјРѕРЅРёС‚РѕСЂРёРЅРіР° Рё Р°РЅР°Р»РёР·Р° РґР°РЅРЅС‹С…",
     url: "https://chek1-production.up.railway.app",
-    siteName: "Дашборд аналитики",
+    siteName: "Р”Р°С€Р±РѕСЂРґ Р°РЅР°Р»РёС‚РёРєРё",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Дашборд by А.Б",
-    description: "Интерактивная панель мониторинга и анализа данных",
+    title: "Р”Р°С€Р±РѕСЂРґ by Рђ.Р‘",
+    description: "РРЅС‚РµСЂР°РєС‚РёРІРЅР°СЏ РїР°РЅРµР»СЊ РјРѕРЅРёС‚РѕСЂРёРЅРіР° Рё Р°РЅР°Р»РёР·Р° РґР°РЅРЅС‹С…",
   },
 };
 
