@@ -4,7 +4,7 @@ export async function GET() {
   try {
     const { execSync } = await import("child_process");
     const result = execSync(
-      `python3 -c "
+      `/home/z/.venv/bin/python3 -c "
 import json
 import openpyxl
 
