@@ -14,24 +14,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Дашборд by А.Б",
-  description: "Интерактивная панель мониторинга и анализа данных. Разработано с использованием TypeScript, Tailwind CSS и shadcn/ui.",
-  keywords: ["Дашборд", "Аналитика", "Next.js", "TypeScript", "Tailwind CSS", "shadcn/ui", "React"],
-  authors: [{ name: "Бурнаев А.В" }],
+  title: "Analytics Dashboard by A.B.",
+  description: "Interactive data monitoring and analysis dashboard. Built with TypeScript, Tailwind CSS, and shadcn/ui.",
+  keywords: ["Dashboard", "Analytics", "Next.js", "TypeScript", "Tailwind CSS", "shadcn/ui", "React"],
+  authors: [{ name: "A.V. Burnaev" }],
   icons: {
     icon: "/favicon.ico",
   },
   openGraph: {
-    title: "Дашборд by А.Б",
-    description: "Интерактивная панель мониторинга и анализа данных",
+    title: "Analytics Dashboard by A.B.",
+    description: "Interactive data monitoring and analysis dashboard",
     url: "https://chek1-production.up.railway.app",
-    siteName: "Дашборд аналитики",
+    siteName: "Analytics Dashboard",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Дашборд by А.Б",
-    description: "Интерактивная панель мониторинга и анализа данных",
+    title: "Analytics Dashboard by A.B.",
+    description: "Interactive data monitoring and analysis dashboard",
   },
 };
 
