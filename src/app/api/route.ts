@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
     const { execSync } = await import("child_process");
     const result = execSync(
-      `/home/z/.venv/bin/python3 -c "
+      `python3 -c "
 import json
 import openpyxl
 
@@ -75,7 +75,7 @@ for row_num in range(14, 19):
     nbch_subcategories.append({'name': name, 'checks': c, 'penetration': p, 'sales': s, 'rto': r})
 
 # === Additional file: дополнительно.xlsx (store-level Ур1 + Ур3) ===
-wb2 = openpyxl.load_workbook('/home/z/my-project/upload/дополнительно.xlsx', data_only=True)
+wb2 = openpyxl.load_workbook('upload/дополнительно.xlsx', data_only=True)
 
 # --- Region 02 stores ---
 ws02_3 = wb2['02_магазины']       # Уровень 3 (subcategories)
