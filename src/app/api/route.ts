@@ -9,7 +9,7 @@ import json
 import openpyxl
 
 # === Main file: 02-16_правильный.xlsx (regional summaries) ===
-wb1 = openpyxl.load_workbook('/home/z/my-project/upload/02-16_правильный.xlsx', data_only=True)
+wb1 = openpyxl.load_workbook('upload/02-16_правильный.xlsx', data_only=True)
 
 # Sheet: 16_02_3ур — regional comparison
 ws = wb1['16_02_3ур']
