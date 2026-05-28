@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import {
@@ -38,7 +38,7 @@ interface Store {
   frov_penetration: number
   frov_sales: number
   frov_rto: number
-  total_receipts: number
+Total_receipts: number
 }
 
 interface AnalysisData {
@@ -462,6 +462,38 @@ export default function Home() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Аналитические выводы (для генерального директора) */}
+            <Card className="border-primary/20 bg-muted/5 mt-6">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2 text-foreground font-semibold">
+                  <BarChart3 className="w-4 h-4 text-primary" />
+                  Аналитические выводы
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-background p-4 rounded-lg border border-border shadow-sm">
+                    <h4 className="font-semibold text-sm text-foreground mb-1">Региональный разрыв</h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Пенетрация ФРОВ в Регионе 02 отстает от лидера (Регион 16) на <span className="font-semibold text-foreground">2.92 п.п.</span> Основные просадки — по категориям «Фрукты» (<span className="font-medium text-foreground">-2.38 п.п.</span>) и «Овощи» (<span className="font-medium text-foreground">-2.22 п.п.</span>).
+                    </p>
+                  </div>
+                  <div className="bg-background p-4 rounded-lg border border-border shadow-sm">
+                    <h4 className="font-semibold text-sm text-foreground mb-1">Упущенная выгода</h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Средний чек ФРОВ в отстающем регионе ниже лидера на <span className="font-semibold text-foreground">11.9%</span> (212.38 руб. против 237.85 руб.), что напрямую снижает комплексность покупки и товарооборот (РТО) дивизиона.
+                    </p>
+                  </div>
+                  <div className="bg-background p-4 rounded-lg border border-border shadow-sm">
+                    <h4 className="font-semibold text-sm text-foreground mb-1">Целевое действие</h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Необходим операционный аудит фреш-зон и цепочек поставок в Регионе 02 для выравнивания стандартов доступности и свежести категорий «Овощи» и «Фрукты» до уровня Региона 16.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* ====== TAB 2: Помагазинный анализ ====== */}
@@ -471,23 +503,42 @@ export default function Home() {
               <h2 className="text-lg font-semibold">Помагазинный анализ</h2>
             </div>
 
-            <Card className="border-emerald-200 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-950/20">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Info className="w-4 h-4 text-emerald-600" />
-                  Источник данных
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm space-y-1.5">
-                <p>
-                  Пенетрация ФРОВ (<strong>Уровень 1</strong>) берётся <strong>напрямую из выгрузки</strong> — листы «_верх».
-                  Это точные значения, не оценка. Пенетрации подкатегорий <strong>не складываются</strong> (один чек → несколько подкатегорий).
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Нажмите на магазин, чтобы увидеть подробную характеристику по Уровню 1 и Уровню 3.
-                </p>
-              </CardContent>
-            </Card>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card className="border-emerald-200 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-950/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Info className="w-4 h-4 text-emerald-600" />
+                    Источник данных
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm space-y-1.5">
+                  <p>
+                    Пенетрация ФРОВ (<strong>Уровень 1</strong>) берётся <strong>напрямую из выгрузки</strong> — листы «_верх».
+                    Это точные значения, не оценка. Пенетрации подкатегорий <strong>не складываются</strong> (один чек → несколько подкатегорий).
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Нажмите на магазин, чтобы увидеть подробную характеристику по Уровню 1 и Уровню 3.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-950/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Store className="w-4 h-4 text-blue-600" />
+                    Помагазинный анализ
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm space-y-1.5">
+                  <p>
+                    <strong>+п.п.</strong> означает разницу между регионом и магазином.
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Пример: если пенетрация региона — 41.95%, а у ТТ — 49.50%, то отклонение составляет +7.55 п.п.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
 
             <Tabs defaultValue="region16" className="w-full">
               <TabsList className="mb-4">
